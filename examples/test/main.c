@@ -10,6 +10,7 @@ typedef struct {
     vec2 camPos;
 
     ink_buffer verts;
+    ink_buffer idxs;
     ink_bindings bindings;
     ink_shader shader;
     ink_pipeline pipeline;
@@ -43,37 +44,57 @@ ink_typeInfo uniformsTypeInfo = {
 void reload(gameState* state) {
     ink_dropBuffer(state->verts);
     state->verts = ink_makeBuffer();
-
     f32 verts[] = {
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.0f,  0.5f, 0.0f
+         0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+         0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+        -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
     };
     ink_uploadBufferData(state->verts, sizeof(verts), verts);
 
+    ink_dropBuffer(state->idxs);
+    state->idxs = ink_makeBuffer();
+    u32 idxs[] = {
+        0, 1, 3,
+        1, 2, 3
+    };
+    ink_uploadBufferData(state->idxs, sizeof(idxs), idxs);
+
     ink_dropBindings(&state->bindings);
     state->bindings = ink_makeBindings((ink_bindingsDesc){
-        .nAttribs = 1,
+        .nAttribs = 2,
         .attribs[0] = {
             .size = 3,
             .buffer = state->verts
-        }
+        },
+        .attribs[1] = {
+            .size = 2,
+            .buffer = state->verts
+        },
+        .idxs = state->idxs
     });
 
     ink_dropShader(state->shader);
     state->shader = ink_makeShader("#version 330 core\n" INK_STRINGIFY(
         layout (location = 0) in vec3 aPos;
+        layout (location = 1) in vec2 aUv;
 
         uniform mat4 uTrans;
 
+        out vec2 pUv;
+
         void main() {
-            gl_Position = uTrans * vec4(aPos.x, aPos.y,aPos.z, 1.0);
+            gl_Position = uTrans * vec4(aPos.x, aPos.y, aPos.z, 1.0);
+            pUv = aUv;
         }
     ), "#version 330 core\n" INK_STRINGIFY(
+
+        in vec2 pUv;
+
         out vec4 oColor;
 
         void main() {
-            oColor = vec4(2.0f, 0.5f, 0.2f, 1.0f);
+            oColor = vec4(pUv, 0.2f, 1.0f);
         } 
     ));
 
@@ -122,5 +143,5 @@ void update(f32 dt, gameState* state) {
         state->camPos.y -= dt * camSpeed;
     }
 
-    ink_draw(0, 3);
+    ink_draw(0, 6);
 }
