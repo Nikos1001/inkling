@@ -166,6 +166,8 @@ int main(int argc, char** argv) {
     pthread_create(&thread, NULL, hotReloadThread, NULL);
 
     while(ink_continueGameLoop()) {
+        f32 dt = ink_winBeginFrame(); 
+
         pthread_mutex_lock(&gameState.mutex);
 
         if(gameState.needReload) {
@@ -176,7 +178,7 @@ int main(int argc, char** argv) {
         }
 
         if(gameState.dll.update) {
-            gameState.dll.update(1.0f / 60.0f, gameState.state);
+            gameState.dll.update(dt, gameState.state);
         }
         pthread_mutex_unlock(&gameState.mutex);
 

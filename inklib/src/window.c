@@ -10,6 +10,8 @@ GLFWwindow* window = NULL;
 
 extern void keyCallback(GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods);
 
+f64 prevFrameTime;
+
 void ink_initWindow() {
 
     if(window != NULL) {
@@ -40,10 +42,19 @@ void ink_initWindow() {
 
     glfwSetKeyCallback(window, keyCallback);
 
+    prevFrameTime = glfwGetTime();
+
 }
 
 bool ink_continueGameLoop() {
     return !glfwWindowShouldClose(window);
+}
+
+f32 ink_winBeginFrame() {
+    f64 time = glfwGetTime();
+    f32 dt = time - prevFrameTime;
+    prevFrameTime = time;
+    return dt;
 }
 
 void ink_winEndFrame() {

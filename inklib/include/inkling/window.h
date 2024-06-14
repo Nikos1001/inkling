@@ -6,6 +6,7 @@
 
 void ink_initWindow();
 bool ink_continueGameLoop();
+f32 ink_winBeginFrame();
 void ink_winEndFrame();
 
 void ink_setWindowTitle(const char* title);
