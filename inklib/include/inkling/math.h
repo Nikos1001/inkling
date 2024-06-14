@@ -57,6 +57,9 @@ extern ink_readonly ink_typeInfo mat4TypeInfo;
 
 #define MAT4_IDENTITY (mat4){.x = VEC4_X, .y = VEC4_Y, .z = VEC4_Z, .w = VEC4_W}
 
+vec4 ink_transform(mat4* mat, vec4 vec);
+mat4 ink_mulMat4(mat4* first, mat4* second);
+mat4 ink_calc2DTransform(vec2 position, vec2 scale, f32 angle);
 mat4 ink_calcOrthoCamMatrix(f32 aspect, f32 viewportHeight, f32 zNear, f32 zFar, vec2 camPos);
 
 #endif
