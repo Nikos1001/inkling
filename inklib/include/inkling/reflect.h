@@ -17,7 +17,8 @@ typedef struct {
 
 typedef enum {
     INK_GFX_UNIFORM_TYPE_NONE,
-    INK_GFX_UNIFORM_TYPE_MAT4
+    INK_GFX_UNIFORM_TYPE_MAT4,
+    INK_GFX_UNIFORM_TYPE_SAMPLER
 } ink_gfxUniformType;
 
 typedef struct ink_typeInfo {

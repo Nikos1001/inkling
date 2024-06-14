@@ -43,6 +43,18 @@ void ink_dropBindings(ink_bindings* bindings) {
     api.dropBindings(bindings);
 }
 
+ink_texture ink_makeTexture(ink_textureDesc desc) {
+    return api.makeTexture(desc);
+}
+
+void ink_uploadTextureData(ink_texture texture, usize w, usize h, void* data) {
+    api.uploadTextureData(texture, w, h, data);
+}
+
+void ink_dropTexture(ink_texture texture) {
+    api.dropTexture(texture);
+}
+
 ink_shader ink_makeShader(const char* vertSrc, const char* fragSrc) {
     return api.makeShader(vertSrc, fragSrc);
 }

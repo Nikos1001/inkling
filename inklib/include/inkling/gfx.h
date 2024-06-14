@@ -25,6 +25,7 @@ typedef struct {
         ink_buffer buffer;
         usize size;
     } attribs[INK_MAX_ATTRIBS];
+    ink_buffer idxs;
 } ink_bindingsDesc;
 
 typedef struct {
@@ -34,6 +35,43 @@ typedef struct {
 
 ink_bindings ink_makeBindings(ink_bindingsDesc desc);
 void ink_dropBindings(ink_bindings* bindings);
+
+
+typedef enum {
+    INK_TEXTURE_WRAP_REPEAT,
+    INK_TEXTURE_WRAP_MIRROR_REPEAT,
+    INK_TEXTURE_WRAP_CLAMP_TO_EDGE,
+    INK_TEXTURE_WRAP_CLAMP_TO_COLOR,
+} ink_textureWrap;
+
+typedef enum {
+    INK_TEXTURE_FILTER_NEAREST,
+    INK_TEXTURE_FILTER_LINEAR
+} ink_textureFilter;
+
+typedef enum {
+    INK_TEXTURE_FORMAT_RGB,
+    INK_TEXTURE_FORMAT_RGBA
+} ink_textureFormat;
+
+typedef struct {
+    ink_textureWrap horizontalWrap;
+    ink_textureWrap verticalWrap; 
+    vec4 borderColor;
+
+    ink_textureFilter minFilter;
+    ink_textureFilter magFilter;
+
+    ink_textureFormat format;
+} ink_textureDesc;
+
+typedef ink_ref ink_texture;
+
+ink_texture ink_makeTexture(ink_textureDesc desc);
+void ink_uploadTextureData(ink_texture texture, usize w, usize h, void* data);
+void ink_dropTexture(ink_texture texture);
+
+extern ink_readonly ink_typeInfo ink_textureTypeInfo;
 
 
 

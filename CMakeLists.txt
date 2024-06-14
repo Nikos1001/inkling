@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.5)
 set(INSTALL_PATH "$ENV{HOME}/.inkling")
 file(MAKE_DIRECTORY ${INSTALL_PATH})
 
-set(INKLIB_UTIL_SRCS inklib/src/memory.c inklib/src/arena.c inklib/src/str.c inklib/src/file.c inklib/src/math.c inklib/src/reflect.c inklib/src/respool.c)
+set(INKLIB_UTIL_SRCS inklib/src/memory.c inklib/src/arena.c inklib/src/str.c inklib/src/file.c inklib/src/math.c inklib/src/reflect.c inklib/src/respool.c inklib/src/gfxTypeInfos.c)
 
 project(inklib)
 

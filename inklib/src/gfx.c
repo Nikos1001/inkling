@@ -134,9 +134,14 @@ ink_bindings ink_makeBindings(ink_bindingsDesc desc) {
     for(int i = 0; i < desc.nAttribs; i++) {
         if(boundBuffers[i] != NULL) {
             glBindBuffer(GL_ARRAY_BUFFER, boundBuffers[i]->buffer);
-            glVertexAttribPointer(i, desc.attribs[i].size, GL_FLOAT, GL_FALSE, desc.attribs[i].size * sizeof(f32), (void*)offsets[i]);
+            glVertexAttribPointer(i, desc.attribs[i].size, GL_FLOAT, GL_FALSE, boundBuffers[i]->currStride, (void*)offsets[i]);
             glEnableVertexAttribArray(i); 
         }
+    }
+
+    buffer* idxBuffer = ink_getRes(&buffers, desc.idxs);
+    if(idxBuffer != NULL) {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idxBuffer->buffer);
     }
 
     bindings.desc = desc;
@@ -146,6 +151,73 @@ ink_bindings ink_makeBindings(ink_bindingsDesc desc) {
 void ink_dropBindings(ink_bindings* bindings) {
     glDeleteVertexArrays(1, &bindings->vao);
 }
+
+typedef struct {
+    u32 texture;
+    ink_textureDesc desc;
+} texture;
+
+ink_typeInfo textureTypeInfo = {
+    .size = sizeof(texture)
+};
+
+u32 glWrapModeTable[] = {
+    [INK_TEXTURE_WRAP_REPEAT] = GL_REPEAT,
+    [INK_TEXTURE_WRAP_MIRROR_REPEAT] = GL_MIRRORED_REPEAT,
+    [INK_TEXTURE_WRAP_CLAMP_TO_EDGE] = GL_CLAMP_TO_EDGE,
+    [INK_TEXTURE_WRAP_CLAMP_TO_COLOR] = GL_CLAMP_TO_BORDER
+};
+
+u32 glFilterModeTable[] = {
+    [INK_TEXTURE_FILTER_NEAREST] = GL_NEAREST,
+    [INK_TEXTURE_FILTER_LINEAR] = GL_LINEAR
+};
+
+ink_respool textures = ink_makeRespool(&textureTypeInfo);
+
+ink_texture ink_makeTexture(ink_textureDesc desc) {
+    ink_texture textureRef = ink_allocRes(&textures);
+    texture* texture = ink_getRes(&textures, textureRef);
+
+    glGenTextures(1, &texture->texture);
+    glBindTexture(GL_TEXTURE_2D, texture->texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, glWrapModeTable[desc.horizontalWrap]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, glWrapModeTable[desc.verticalWrap]);
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &desc.borderColor.m[0]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glFilterModeTable[desc.minFilter]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glFilterModeTable[desc.magFilter]);
+
+    texture->desc = desc;
+
+    return textureRef;
+}
+
+u32 glTextureFormatTable[] = {
+    [INK_TEXTURE_FORMAT_RGB] = GL_RGB,
+    [INK_TEXTURE_FORMAT_RGBA] = GL_RGBA
+};
+
+u32 glTextureDataTypeTable[] = {
+    [INK_TEXTURE_FORMAT_RGB] = GL_UNSIGNED_BYTE,
+    [INK_TEXTURE_FORMAT_RGBA] = GL_UNSIGNED_BYTE,
+};
+
+void ink_uploadTextureData(ink_texture textureRef, usize w, usize h, void* data) {
+    texture* texture = ink_getRes(&textures, textureRef);
+    glBindTexture(GL_TEXTURE_2D, texture->texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, glTextureFormatTable[texture->desc.format], w, h, 0, glTextureFormatTable[texture->desc.format], glTextureDataTypeTable[texture->desc.format], data);
+}
+
+void ink_dropTexture(ink_texture textureRef) {
+    texture* texture = ink_getRes(&textures, textureRef);
+    if(texture) {
+        glDeleteTextures(1, &texture->texture);
+    }
+    ink_dropRes(&textures, textureRef);
+}
+
 
 void ink_applyPipeline(ink_pipeline* pipeline) {
     shader* shader = ink_getRes(&shaders, pipeline->shader);
@@ -190,6 +262,8 @@ void ink_updatePipelineUniforms(ink_pipeline* pipeline, void* uniforms) {
     }
 
     if(pipeline->uniformTypeInfo) {
+        u32 samplerIdx = 0;
+
         for(usize i = 0; i < pipeline->uniformTypeInfo->nFields; i++) {
             ink_field* field = &pipeline->uniformTypeInfo->fields[i];
             if(field->type->gfxUniformType == INK_GFX_UNIFORM_TYPE_NONE)
@@ -204,11 +278,22 @@ void ink_updatePipelineUniforms(ink_pipeline* pipeline, void* uniforms) {
                     glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, uniformData);
                     break;
                 }
+                case INK_GFX_UNIFORM_TYPE_SAMPLER: {
+                    ink_texture textureRef = *((ink_texture*)uniformData);
+                    texture* texture = ink_getRes(&textures, textureRef);
+                    if(texture) {
+                        glActiveTexture(GL_TEXTURE0 + samplerIdx);
+                        glBindTexture(GL_TEXTURE_2D, texture->texture);
+                        glUniform1i(uniformLoc, samplerIdx);
+                        samplerIdx++;
+                    }
+                    break;
+                }
             }
         }
     }
 }
 
 void ink_draw(usize beginVert, usize count) {
-    glDrawArrays(GL_TRIANGLES, beginVert, count);
+    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)beginVert);
 }

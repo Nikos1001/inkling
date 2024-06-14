@@ -22,6 +22,10 @@ typedef struct {
     ink_bindings (*makeBindings)(ink_bindingsDesc desc);
     void (*dropBindings)(ink_bindings* bindings); 
 
+    ink_texture (*makeTexture)(ink_textureDesc desc);
+    void (*uploadTextureData)(ink_texture texture, usize w, usize h, void* data);
+    void (*dropTexture)(ink_texture texture);
+
     ink_shader (*makeShader)(const char* vertSrc, const char* fragSrc);
     void (*dropShader)(ink_shader shader); 
     void (*beginPass)(ink_framebuffer* fb, ink_passAction* action);

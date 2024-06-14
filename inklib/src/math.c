@@ -11,7 +11,7 @@ ink_readonly ink_typeInfo vec4TypeInfo = {
 };
 
 ink_readonly ink_typeInfo mat4TypeInfo = {
-    .size = sizeof(vec4),
+    .size = sizeof(mat4),
     .gfxUniformType = INK_GFX_UNIFORM_TYPE_MAT4
 };
 

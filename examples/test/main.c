@@ -14,6 +14,7 @@ typedef struct {
     ink_bindings bindings;
     ink_shader shader;
     ink_pipeline pipeline;
+    ink_texture texture;
 } gameState;
 
 ink_typeInfo gameStateTypeInfo = {
@@ -31,13 +32,15 @@ ink_typeInfo* stateTypeInfo() {
 
 typedef struct {
     mat4 uTrans;
+    ink_texture uColor;
 } uniforms;
 
 ink_typeInfo uniformsTypeInfo = {
     .size = sizeof(uniforms),
-    .nFields = 1,
+    .nFields = 2,
     .fields = {
-        {"uTrans", offsetof(uniforms, uTrans), &mat4TypeInfo}
+        {"uTrans", offsetof(uniforms, uTrans), &mat4TypeInfo},
+        {"uColor", offsetof(uniforms, uColor), &ink_textureTypeInfo}
     }
 };
 
@@ -91,10 +94,12 @@ void reload(gameState* state) {
 
         in vec2 pUv;
 
+        uniform sampler2D uColor;
+
         out vec4 oColor;
 
         void main() {
-            oColor = vec4(pUv, 0.2f, 1.0f);
+            oColor = sqrt(texture(uColor, pUv));
         } 
     ));
 
@@ -102,6 +107,23 @@ void reload(gameState* state) {
         .shader = state->shader,
         .uniformTypeInfo = &uniformsTypeInfo
     };
+
+    ink_dropTexture(state->texture);
+    state->texture = ink_makeTexture((ink_textureDesc){
+        .format = INK_TEXTURE_FORMAT_RGBA,
+        .horizontalWrap = INK_TEXTURE_WRAP_CLAMP_TO_EDGE,
+        .verticalWrap = INK_TEXTURE_WRAP_CLAMP_TO_EDGE,
+        .minFilter = INK_TEXTURE_FILTER_NEAREST,
+        .magFilter = INK_TEXTURE_FILTER_NEAREST,
+    });
+
+    u8 textureData[] = {
+        255, 0, 0, 255,
+        0, 255, 0, 255,
+        0, 0, 255, 255,
+        255, 255, 0, 255
+    };
+    ink_uploadTextureData(state->texture, 2, 2, textureData);
 }
 
 void update(f32 dt, gameState* state) {
@@ -127,6 +149,7 @@ void update(f32 dt, gameState* state) {
 
     uniforms u;
     u.uTrans = ink_mulMat4(&objTrans, &cameraTrans); 
+    u.uColor = state->texture;
     ink_updatePipelineUniforms(&state->pipeline, &u);
 
     f32 camSpeed = 10.0f;
