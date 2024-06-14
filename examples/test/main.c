@@ -3,6 +3,7 @@
 #include <inkling/window.h>
 #include <inkling/gfx.h>
 #include <inkling/input.h>
+#include <inkling/math.h>
 
 typedef struct {
     f32 time; 
@@ -100,8 +101,11 @@ void update(f32 dt, gameState* state) {
     ink_applyBindings(&state->bindings);
     ink_applyPipeline(&state->pipeline);
 
+    mat4 cameraTrans = ink_calcOrthoCamMatrix(ink_getWindowAspect(), 5.0, -1.0, 1.0, state->camPos);
+    mat4 objTrans = ink_calc2DTransform((vec2){3.0, 2.0}, (vec2){2.0, 2.0}, state->time);
+
     uniforms u;
-    u.uTrans = ink_calcOrthoCamMatrix(ink_getWindowAspect(), 5.0, -1.0, 1.0, state->camPos);
+    u.uTrans = ink_mulMat4(&objTrans, &cameraTrans); 
     ink_updatePipelineUniforms(&state->pipeline, &u);
 
     f32 camSpeed = 10.0f;
