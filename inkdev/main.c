@@ -7,11 +7,8 @@
 #include <pthread.h>
 #include <dlfcn.h>
 
-#define INKLIB_INSTALL_PATH ".inkling"
-#define INKLIB_INCLUDE_PATH INKLIB_INSTALL_PATH "/include"
-#define INKLIB_LIB_PATH INKLIB_INSTALL_PATH "/lib"
-
 #include "dll.h"
+#include "build.h"
 
 const char* buildLogPrefix[] = {
     [INK_LOG_INFO] = "\033[0m",
@@ -33,48 +30,6 @@ struct {
     void* state; 
     bool needReload;
 } gameState;
-
-ink_str rebuild(ink_arena* compilationArena) {
-
-    ink_path cwd = ink_cwd(compilationArena);
-
-    const char* homeDir = getenv("HOME");
-
-    ink_strBuilder buildPathBuilder = ink_makeStrBuilder();
-    ink_writeFmt(compilationArena, &buildPathBuilder, ".build/g%d.so", gameState.currBuildId);
-    gameState.currBuildId++;
-
-    ink_str buildPath = ink_getBuiltStr(&buildPathBuilder);
-
-    ink_strBuilder commandBuilder = ink_makeStrBuilder();
-    ink_writeFmt(compilationArena, &commandBuilder, "clang -shared -o %s ", buildPath.str);
-    ink_writeStr(compilationArena, &commandBuilder, "-I"); 
-    ink_writeStr(compilationArena, &commandBuilder, homeDir);
-    ink_writeStr(compilationArena, &commandBuilder, "/" INKLIB_INCLUDE_PATH " -L");
-    ink_writeStr(compilationArena, &commandBuilder, homeDir);
-    ink_writeStr(compilationArena, &commandBuilder, "/" INKLIB_LIB_PATH " -linklib-dev ");
-
-    for(ink_pathList* file = ink_walkDir(compilationArena, &cwd); file != NULL; file = file->next) {
-        ink_str ext = ink_pathExt(&file->path);
-        if(ink_strEq(&ext, "c")) {
-            const char* relPath = file->path.path.str + file->path.pieces[cwd.nPieces].start;
-            ink_writeStr(compilationArena, &commandBuilder, relPath);
-            ink_writeChar(compilationArena, &commandBuilder, ' ');
-        }
-    }
-
-    ink_str command = ink_getBuiltStr(&commandBuilder); 
-
-    ink_info("Rebuilding...");
-    ink_info(command.str);
-
-    system("rm -rf .build");
-    system("mkdir -p .build");
-    system(command.str);
-
-    return buildPath;
-
-}
 
 void reload(const char* dllPath) {
 
@@ -132,8 +87,9 @@ void* hotReloadThread(void* data) {
     while(true) {
         getc(stdin);
         pthread_mutex_lock(&gameState.mutex);
-        ink_str dllPath = rebuild(&compilationArena);
+        ink_str dllPath = rebuild(&compilationArena, gameState.currBuildId);
         reload(dllPath.str);
+        gameState.currBuildId++;
         pthread_mutex_unlock(&gameState.mutex);
     }
 
@@ -146,20 +102,27 @@ void* hotReloadThread(void* data) {
 
 int main(int argc, char** argv) {
 
+    ink_logger reloadLogger = (ink_logger){
+        .log = inkdevBuildLog
+    };
+    ink_setLogger(&reloadLogger);
+
+    if(argc == 2 && strcmp(argv[1], "build") == 0) {
+        ink_arena buildArena = ink_makeArena(1024 * 1024); 
+        build(&buildArena);
+        return 0;
+    }
+
     ink_initWindow();
 
     gameState.stateSize = 0;
     gameState.state = NULL;
     pthread_mutex_init(&gameState.mutex, NULL);
 
-    ink_logger reloadLogger = (ink_logger){
-        .log = inkdevBuildLog
-    };
-    ink_setLogger(&reloadLogger);
-
     ink_arena buildArena = ink_makeArena(1024 * 1024);
-    ink_str dllPath = rebuild(&buildArena);
+    ink_str dllPath = rebuild(&buildArena, 0);
     reload(dllPath.str);
+    gameState.currBuildId = 1;
     ink_dropArena(&buildArena);
 
     pthread_t thread;

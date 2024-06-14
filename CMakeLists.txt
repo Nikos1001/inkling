@@ -11,13 +11,16 @@ project(inklib)
 add_library(inklib STATIC ${INKLIB_UTIL_SRCS} inklib/src/window.c inklib/src/gfx.c inklib/src/log.c inklib/src/input.c)
 target_include_directories(inklib PRIVATE inklib/include/)
 
-find_package(GLEW 2.0 REQUIRED)
-target_link_libraries(inklib GLEW::GLEW)
-target_include_directories(inklib PRIVATE ${GLEW_INCLUDE})
+add_definitions(-DGLEW_STATIC)
+add_subdirectory(libs/glew EXCLUDE_FROM_ALL)
+target_link_libraries(inklib PUBLIC libglew_static)
+target_include_directories(inklib PRIVATE libs/glew/include/)
+install(TARGETS libglew_static DESTINATION ${INSTALL_PATH}/lib)
 
-find_package(glfw3 REQUIRED)
-target_link_libraries(inklib glfw)
-target_include_directories(inklib PRIVATE ${GLFW_INCLUDE})
+add_subdirectory(libs/glfw EXCLUDE_FROM_ALL)
+target_link_libraries(inklib PUBLIC glfw)
+target_include_directories(inklib PRIVATE libs/glfw/include/)
+install(TARGETS glfw DESTINATION ${INSTALL_PATH}/lib)
 
 install(TARGETS inklib DESTINATION ${INSTALL_PATH}/lib)
 install(DIRECTORY inklib/include/inkling DESTINATION ${INSTALL_PATH}/include)
@@ -33,8 +36,20 @@ install(TARGETS inklib-dev DESTINATION ${INSTALL_PATH}/lib)
 
 
 
+project(inkrun)
+
+add_library(inkrun STATIC inkrun/entry.c)
+target_include_directories(inkrun PRIVATE inklib/include/)
+target_link_libraries(inkrun PUBLIC inklib)
+
+install(TARGETS inkrun DESTINATION ${INSTALL_PATH}/lib)
+
+
+
 project(inkdev)
 
-add_executable(inkdev inkdev/main.c inkdev/dll.c)
+add_executable(inkdev inkdev/main.c inkdev/dll.c inkdev/build.c)
 target_include_directories(inkdev PRIVATE inklib/include)
 target_link_libraries(inkdev inklib)
+
+
