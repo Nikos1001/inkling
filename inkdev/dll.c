@@ -45,7 +45,11 @@ gameDLL loadDLL(const char* path, bool* success) {
             .logger = &logger,
             .setWindowTitle = ink_setWindowTitle,
             .getWindowAspect = ink_getWindowAspect,
+
             .keyDown = ink_keyDown,
+            .keyPressed = ink_keyPressed,
+            .keyReleased = ink_keyReleased,
+
             .makeBuffer = ink_makeBuffer,
             .makeBindings = ink_makeBindings,
             .dropBindings = ink_dropBindings,

@@ -14,6 +14,8 @@ typedef struct {
     f32 (*getWindowAspect)();
 
     bool (*keyDown)(ink_key key);
+    bool (*keyPressed)(ink_key key);
+    bool (*keyReleased)(ink_key key);
 
     ink_buffer (*makeBuffer)();
     void (*uploadBufferData)(ink_buffer buffer, usize size, void* data);

@@ -23,6 +23,14 @@ bool ink_keyDown(ink_key key) {
     return api.keyDown(key);
 }
 
+bool ink_keyPressed(ink_key key) {
+    return api.keyPressed(key);
+}
+
+bool ink_keyReleased(ink_key key) {
+    return api.keyReleased(key);
+}
+
 ink_buffer ink_makeBuffer() {
     return api.makeBuffer();
 }
