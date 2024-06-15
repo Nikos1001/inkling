@@ -224,7 +224,7 @@ void ink_applyPipeline(ink_pipeline* pipeline) {
     if(shader != NULL) {
         glUseProgram(shader->program);
     } else {
-        ink_error("Tried to bind deleted shader.");
+        ink_error("Tried to bind missing shader.");
     }
 }
 
@@ -257,7 +257,7 @@ void ink_updatePipelineUniforms(ink_pipeline* pipeline, void* uniforms) {
     if(shader != NULL) {
         glUseProgram(shader->program);
     } else {
-        ink_error("Tried to bind deleted shader.");
+        ink_error("Tried to bind missing shader.");
         return;
     }
 

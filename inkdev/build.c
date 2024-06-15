@@ -18,7 +18,7 @@ void addSourceFilesToBuildCommand(ink_arena* arena, ink_strBuilder* commandBuild
     }
 }
 
-ink_str rebuild(ink_arena* arena, u32 buildId) {
+ink_str rebuild(ink_arena* arena, u32 buildId, bool* success) {
     ink_path cwd = ink_cwd(arena);
 
     const char* homeDir = getenv("HOME");
@@ -37,9 +37,10 @@ ink_str rebuild(ink_arena* arena, u32 buildId) {
     ink_info("Rebuilding...");
     ink_info(command.str);
 
-    system("rm -rf .build");
     system("mkdir -p .build");
-    system(command.str);
+    if(system(command.str) != 0) {
+        *success = false;
+    }
 
     return buildPath;
 }

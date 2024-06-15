@@ -44,8 +44,7 @@ ink_typeInfo uniformsTypeInfo = {
     }
 };
 
-void reload(gameState* state) {
-    ink_dropBuffer(state->verts);
+void init(gameState* state) {
     state->verts = ink_makeBuffer();
     f32 verts[] = {
          0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
@@ -55,7 +54,6 @@ void reload(gameState* state) {
     };
     ink_uploadBufferData(state->verts, sizeof(verts), verts);
 
-    ink_dropBuffer(state->idxs);
     state->idxs = ink_makeBuffer();
     u32 idxs[] = {
         0, 1, 3,
@@ -63,7 +61,6 @@ void reload(gameState* state) {
     };
     ink_uploadBufferData(state->idxs, sizeof(idxs), idxs);
 
-    ink_dropBindings(&state->bindings);
     state->bindings = ink_makeBindings((ink_bindingsDesc){
         .nAttribs = 2,
         .attribs[0] = {
@@ -77,7 +74,6 @@ void reload(gameState* state) {
         .idxs = state->idxs
     });
 
-    ink_dropShader(state->shader);
     state->shader = ink_makeShader("#version 330 core\n" INK_STRINGIFY(
         layout (location = 0) in vec3 aPos;
         layout (location = 1) in vec2 aUv;
@@ -108,7 +104,6 @@ void reload(gameState* state) {
         .uniformTypeInfo = &uniformsTypeInfo
     };
 
-    ink_dropTexture(state->texture);
     state->texture = ink_makeTexture((ink_textureDesc){
         .format = INK_TEXTURE_FORMAT_RGBA,
         .horizontalWrap = INK_TEXTURE_WRAP_CLAMP_TO_EDGE,
@@ -124,12 +119,17 @@ void reload(gameState* state) {
         255, 255, 0, 255
     };
     ink_uploadTextureData(state->texture, 2, 2, textureData);
+
+}
+
+void reload(gameState* state) {
+    
 }
 
 void update(f32 dt, gameState* state) {
     state->time += dt;
 
-    ink_setWindowTitle("Hello Daniel!");
+    ink_setWindowTitle("Hello Brian!");
 
     f32 red = sinf(0.5f * state->time) * 0.5f + 0.5f;
     
@@ -144,13 +144,19 @@ void update(f32 dt, gameState* state) {
     ink_applyBindings(&state->bindings);
     ink_applyPipeline(&state->pipeline);
 
-    mat4 cameraTrans = ink_calcOrthoCamMatrix(ink_getWindowAspect(), 5.0, -1.0, 1.0, state->camPos);
-    mat4 objTrans = ink_calc2DTransform((vec2){3.0, 2.0}, (vec2){2.0, 2.0}, state->time);
-
     uniforms u;
-    u.uTrans = ink_mulMat4(&objTrans, &cameraTrans); 
     u.uColor = state->texture;
-    ink_updatePipelineUniforms(&state->pipeline, &u);
+
+    mat4 cameraTrans = ink_calcOrthoCamMatrix(ink_getWindowAspect(), 5.0, -1.0, 1.0, state->camPos);
+
+    for(i32 x = 0; x < 100; x += 1) {
+        for(i32 y = 0; y < 100; y += 1) {
+            mat4 objTrans = ink_calc2DTransform((vec2){x + 1, y}, (vec2){1.0, 1.0}, state->time * 5.0);
+            u.uTrans = ink_mulMat4(&objTrans, &cameraTrans); 
+            ink_updatePipelineUniforms(&state->pipeline, &u);
+            ink_draw(0, 6);
+        }
+    }
 
     f32 camSpeed = 10.0f;
     if(ink_keyDown(INK_KEY_A)) {
@@ -166,5 +172,4 @@ void update(f32 dt, gameState* state) {
         state->camPos.y -= dt * camSpeed;
     }
 
-    ink_draw(0, 6);
 }

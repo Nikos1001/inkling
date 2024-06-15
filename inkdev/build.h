@@ -4,7 +4,7 @@
 
 #include <inkling/common.h>
 
-ink_str rebuild(ink_arena* arena, u32 buildId);
+ink_str rebuild(ink_arena* arena, u32 buildId, bool* success);
 void build(ink_arena* arena);
 
 #endif

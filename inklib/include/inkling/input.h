@@ -124,5 +124,10 @@ typedef enum {
 } ink_key;
 
 bool ink_keyDown(ink_key key);
+bool ink_keyPressed(ink_key key);
+bool ink_keyReleased(ink_key key);
+
+void ink_initInput();
+void ink_updateInput();
 
 #endif

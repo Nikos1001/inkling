@@ -2,6 +2,7 @@
 #include <inkling/log.h>
 #include <inkling/panic.h>
 #include <inkling/window.h>
+#include <inkling/input.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -58,6 +59,8 @@ f32 ink_winBeginFrame() {
 }
 
 void ink_winEndFrame() {
+    ink_updateInput();
+
     glfwPollEvents();
     glfwSwapBuffers(window);
 }

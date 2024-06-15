@@ -8,12 +8,13 @@
 typedef struct {
     void* dll;
 
-    void (*update)(f32, void*);
-    void (*reload)(void*);
+    void (*init)(void* gameState);
+    void (*update)(f32 dt, void* gameState);
+    void (*reload)(void* gameState);
     ink_typeInfo* stateTypeInfo;
 } gameDLL;
 
-gameDLL loadDLL(const char* path); 
+gameDLL loadDLL(const char* path, bool* success); 
 void dropDLL(gameDLL* dll);
 
 #endif

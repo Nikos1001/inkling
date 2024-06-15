@@ -52,4 +52,5 @@ add_executable(inkdev inkdev/main.c inkdev/dll.c inkdev/build.c)
 target_include_directories(inkdev PRIVATE inklib/include)
 target_link_libraries(inkdev inklib)
 
+install(TARGETS inkdev DESTINATION ${INSTALL_PATH})
 
