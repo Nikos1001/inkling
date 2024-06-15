@@ -85,6 +85,9 @@ void ink_dropShader(ink_shader shader);
 typedef struct {
     ink_shader shader;
     ink_typeInfo* uniformTypeInfo;
+    struct {
+        bool enable;
+    } blend;
 } ink_pipeline;
 
 

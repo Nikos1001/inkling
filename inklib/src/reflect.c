@@ -18,7 +18,8 @@ ink_readonly ink_typeInfo u32TypeInfo = {
 
 ink_readonly ink_typeInfo f32TypeInfo = {
     .size = sizeof(f32),
-    .nFields = 0
+    .nFields = 0,
+    .gfxUniformType = INK_GFX_UNIFORM_TYPE_F32
 };
 
 ink_readonly ink_typeInfo f64TypeInfo = {

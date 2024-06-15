@@ -226,6 +226,13 @@ void ink_applyPipeline(ink_pipeline* pipeline) {
     } else {
         ink_error("Tried to bind missing shader.");
     }
+
+    if(pipeline->blend.enable) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+    } else {
+        glDisable(GL_BLEND);
+    }
 }
 
 void ink_beginPass(ink_framebuffer* fb, ink_passAction* action) {
@@ -272,6 +279,10 @@ void ink_updatePipelineUniforms(ink_pipeline* pipeline, void* uniforms) {
             void* uniformData = uniforms + field->offset;
             switch(field->type->gfxUniformType) {
                 case INK_GFX_UNIFORM_TYPE_NONE: {
+                    break;
+                }
+                case INK_GFX_UNIFORM_TYPE_F32: {
+                    glUniform1f(uniformLoc, *((f32*)uniformData));
                     break;
                 }
                 case INK_GFX_UNIFORM_TYPE_MAT4: {

@@ -101,7 +101,10 @@ void init(gameState* state) {
 
     state->pipeline = (ink_pipeline){
         .shader = state->shader,
-        .uniformTypeInfo = &uniformsTypeInfo
+        .uniformTypeInfo = &uniformsTypeInfo,
+        .blend = {
+            .enable = true
+        }
     };
 
     state->texture = ink_makeTexture((ink_textureDesc){
@@ -115,7 +118,7 @@ void init(gameState* state) {
     u8 textureData[] = {
         255, 0, 0, 255,
         0, 255, 0, 255,
-        0, 0, 255, 255,
+        0, 0, 255, 100,
         255, 255, 0, 255
     };
     ink_uploadTextureData(state->texture, 2, 2, textureData);
